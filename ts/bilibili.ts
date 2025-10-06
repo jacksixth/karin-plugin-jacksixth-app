@@ -4,26 +4,61 @@
  * @license GPL-3.0-only
  * @description 解析B站视频、直播、动态、专栏等链接，并获取相关信息
  */
-
-import { karin, Logger, logger, segment,config } from "node-karin"
+import fs from "node:fs/promises"
+import {
+  karin,
+  Logger,
+  logger,
+  segment,
+  karinPathBase,
+  writeJson,
+} from "node-karin"
 import axios from "node-karin/axios"
+
+const configPath =
+  karinPathBase + "/karin-plugin-example/config/jacksixth-bilibili.json"
+let config = JSON.parse(
+  await fs.readFile(configPath, "utf-8").catch(() => "{}")
+)
+//如果配置文件不存在，则将默认配置写入文件
+if (!config || !config.COOKIE) {
+  logger.warn(
+    `B站链接解析插件配置文件不存在或不完整，已写入默认配置，请修改 ${configPath} 文件`
+  )
+  //创建文件
+  fs.writeFile(configPath, "{}", "utf-8").catch(() => {})
+  //写入默认配置
+  await writeJson(configPath, {
+    COOKIE: "",
+    recallMiniProgram: true,
+    getInfo: {
+      getVideoInfo: true,
+      getDynamicInfo: true,
+      getArticleInfo: true,
+      getLiveRoomInfo: true,
+    },
+  })
+  config = JSON.parse(await fs.readFile(configPath, "utf-8").catch(() => "{}"))
+}
+
 //bilibili 解析配置
 const _config = {
   //当小程序分享解析成功时是否撤回该小程序，仅在群组内且有管理员权限且发送者是普通成员时有效
-  recallMiniProgram: true,
+  recallMiniProgram: config.recallMiniProgram || true,
   getInfo: {
-    getVideoInfo: true, //是否获取并输出视频信息
-    getDynamicInfo: true, //是否获取并输出动态内容
-    getArticleInfo: true, //是否获取并输出专栏信息
-    getLiveRoomInfo: true, //是否获取并输出直播间信息
+    getVideoInfo: config.getInfo?.getVideoInfo || true, //是否获取并输出视频信息
+    getDynamicInfo: config.getInfo?.getDynamicInfo || true, //是否获取并输出动态内容
+    getArticleInfo: config.getInfo?.getArticleInfo || true, //是否获取并输出专栏信息
+    getLiveRoomInfo: config.getInfo?.getLiveRoomInfo || true, //是否获取并输出直播间信息
   },
 }
 
 // User-Agent 模拟浏览器
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-// 模拟 Cookie 这里实际使用时请替换为自己的 Cookie 
+// 模拟 Cookie 这里实际使用时请替换为自己的 Cookie
 const COOKIE =
+  config.COOKIE ||
   "buvid3=51B3F03E-B2A3-6328-6A96-AAFFBE31585856233infoc; b_nut=1724515656; b_lsid=FC7E3D710_1918524A5D0; _uuid=3865BE2D-F4F3-E193-8BA9-A59CC89248FC57181infoc; buvid_fp=247a193ce4cb33454249d3fa0c07b5b1; buvid4=B9A20CE9-F21B-9CBB-C9A2-2BF87A4818F459449-024082416-HVDOzGeW%2BZDZz6AcFkXlwYVKj0krf8ZoxBG%2F5iBAGG5cfpYa1XGKbK%2FTuBwh%2BuYj; enable_web_push=DISABLE; home_feed_column=5; browser_resolution=1920-957"
 
 /**

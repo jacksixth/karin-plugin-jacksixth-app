@@ -4,11 +4,30 @@
  * @license GPL-3.0-only
  * @description 1. 发送 #日报 时，获取摸鱼日报和每日资讯，并发送。2. 每天定时发送摸鱼日报和每日资讯到指定群组。
  */
+import fs from "node:fs/promises"
+import { karinPathBase, writeJson } from "node-karin"
 import karin, { Contact, logger, segment } from "node-karin"
 import axios from "node-karin/axios"
-const _config = {
-  notifyGroupNos: [""], //每天定时发送日报的群号
+
+const configPath =
+  karinPathBase + "/karin-plugin-example/config/jacksixth-moyuribao.json"
+let _config = JSON.parse(
+  await fs.readFile(configPath, "utf-8").catch(() => "{}")
+)
+//如果配置文件不存在，则将默认配置写入文件
+if (!_config || !_config.notifyGroupNos) {
+  logger.warn(
+    `日报插件插件配置文件不存在或不完整，已写入默认配置，请修改 ${configPath} 文件`
+  )
+  //创建文件
+  fs.writeFile(configPath, "{}", "utf-8").catch(() => {})
+  //写入默认配置
+  await writeJson(configPath, {
+    notifyGroupNos: [""], //每天定时发送日报的群号
+  })
+  _config = JSON.parse(await fs.readFile(configPath, "utf-8").catch(() => "{}"))
 }
+
 // 在文件顶部添加https模块引入
 import https from "https"
 
