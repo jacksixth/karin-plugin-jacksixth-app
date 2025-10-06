@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/jacksixth/karin-plugin-jacksixth-app/compare/v1.6.2...v1.7.0) (2025-10-06)
+
+
+### Features
+
+* **bilibili:** 支持从配置文件读取B站解析插件配置 ([68b6311](https://github.com/jacksixth/karin-plugin-jacksixth-app/commit/68b6311ed68aece2273d745893dd2f81f8f7b653))
+
 ## [1.6.2](https://github.com/jacksixth/karin-plugin-jacksixth-app/compare/v1.6.1...v1.6.2) (2025-06-17)
 
 
