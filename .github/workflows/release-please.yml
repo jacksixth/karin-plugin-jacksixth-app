@@ -28,6 +28,13 @@ jobs:
         run: |
           pnpm install
 
+      - name: 更新版本号
+        uses: google-github-actions/release-please-action@v3
+        id: release_please
+        with:
+          release-type: node
+          package-name: "karin-plugin-jacksixth-app"
+
       - name: 编译
         run: pnpm build
 
@@ -35,13 +42,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
-      - name: 更新版本号
-        uses: google-github-actions/release-please-action@v3
-        id: release_please
-        with:
-          release-type: node
-          package-name: "karin-plugin-jacksixth-app"
 
       - name: 清理并提交到 build 分支
         if: ${{ steps.release_please.outputs.release_created }}
